@@ -1,0 +1,23 @@
+#!/bin/bash
+
+SCRIPTPATH="$(
+  cd -- "$(dirname "$0")" >/dev/null 2>&1
+  pwd -P
+)"
+
+# update project
+echo "> UPDATE PROJECT"
+cd $SCRIPTPATH
+git fetch --all
+git reset --hard
+git pull
+
+cd ..
+docker compose up -d
+
+echo "> DEPLOY"
+cd $SCRIPTPATH
+bash ./composer install --no-dev
+bash ./artisan migrate --force
+bash ./artisan optimize
+bash ./artisan queue:restart
